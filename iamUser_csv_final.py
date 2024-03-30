@@ -75,10 +75,12 @@ def get_console_signin_url():
     return f"https://{account_id}.signin.aws.amazon.com/console"
 
 def main():
-    herovired_group = create_iam_group("herovired")
+    herovired_group = create_iam_group("HVB4")
 
     # Replace 'users.csv' with the actual name of your CSV file.
     user_data = read_user_data_from_csv('users.csv')
+
+    output_data = []  # Initialize list to store user data for output to CSV
 
     for data in user_data:
         user = data['User']
@@ -100,6 +102,22 @@ def main():
             print(f"User '{user}' Console sign-in URL: {console_signin_url}")
             print(f"Username: {user}")
             print(f"Temporary Password: {temporary_password}")
- 
+
+            # Append user data including temporary password to the output_data list
+            output_data.append({'User': user, 'Group': group, 'Temporary Password': temporary_password})
+
+    # Write the user data to a CSV file
+    output_file = 'user_output.csv'
+    try:
+        with open(output_file, 'w', newline='') as csvfile:
+            fieldnames = ['User', 'Group', 'Temporary Password']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            for user_data in output_data:
+                writer.writerow(user_data)
+        print(f"User data written to '{output_file}' successfully.")
+    except Exception as e:
+        print(f"Error writing user data to CSV: {e}")
+
 if __name__ == "__main__":
     main()

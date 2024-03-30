@@ -1,19 +1,21 @@
 import boto3
-import datetime
-
 
 ce = boto3.client('ce', region_name='ap-south-1')  # Specify your AWS region
 iam = boto3.client('iam')
 
 group_name = 'herovired'
 
+# Function to get the AWS Account ID from an IAM user ARN
+def get_account_id(arn):
+    return arn.split(":")[4]
 
+# Get the list of IAM users in the group
 response = iam.get_group(GroupName=group_name)
 users_in_group = response['Users']
 
 # Define the start and end dates for the analysis (September 1st to 30th, 2023)
-start_date = '2023-09-01'
-end_date = '2023-09-30'
+start_date = '2023-10-01'
+end_date = '2023-10-30'
 
 # List of metrics to check (in order of preference)
 metrics_to_check = ['UnblendedCost', 'AmortizedCost', 'BlendedCost']
@@ -52,8 +54,8 @@ except Exception as e:
 # Iterate through IAM users in the group
 for user in users_in_group:
     username = user['UserName']
-    account_id = user['Arn'].split(":")[4]
-    
+    account_id = get_account_id(user['Arn'])
+
     # Get each IAM user's billing information for the specified time period
     try:
         results = ce.get_cost_and_usage(
@@ -83,6 +85,7 @@ for user in users_in_group:
 
 # Print the root account bill
 print(f"Root Account Bill: ${root_bill:.2f}")
+print(user_costs.items())
 
 # Print the cost utilization for each IAM user
 for username, cost in user_costs.items():
